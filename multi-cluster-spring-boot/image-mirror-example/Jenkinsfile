@@ -93,7 +93,7 @@ pipeline {
             }
             echo "Result = ${OUT}"
             //sh """
-            //    oc image mirror --insecure=true ${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest ${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest 
+            //    oc image mirror --insecure=true docker://${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest docker://${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest 
             //  """
           }
         }
