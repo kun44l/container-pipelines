@@ -36,8 +36,6 @@ pipeline {
             openshift.withProject("${STAGE1}") {
               echo "Now using project ${STAGE1} and Application - ${APP_NAME}"
               openshift.startBuild("${APP_NAME}", "--from-dir=oc-build/deployments", "--wait=true", "--follow")
-              // openshift.selector("bc", "${APP_NAME}").startBuild("--from-dir=oc-build/deployments", "--wait=true")
-              // openshift.startBuild("${APP_NAME}", "--from-dir=oc-build", "--wait", "--follow")
             }
           }
         }
@@ -88,18 +86,18 @@ pipeline {
 
     stage('Promote to Prod') {
       steps {
-        withDockerRegistry([credentialsId: "${STAGE1}-nonprod-credentials", url: "${SRC_API_URL}"]) {
+        withDockerRegistry([credentialsId: "${STAGE1}-nonprod-credentials", url: "${SRC_REGISTRY}"]) {
 
-          withDockerRegistry([credentialsId: "${STAGE1}-prod-credentials", url: "${DEST_API_URL}"]) {
+          withDockerRegistry([credentialsId: "${STAGE1}-prod-credentials", url: "${DEST_REGISTRY}"]) {
 
             sh """
                 oc image mirror --insecure=true ${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest ${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest 
               """
 
-            }
           }
         }
       }
+    }
 
     stage ('Verify Deployment to Prod') {
       steps {
