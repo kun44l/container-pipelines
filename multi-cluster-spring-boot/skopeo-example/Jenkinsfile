@@ -1,7 +1,7 @@
 openshift.withCluster() {
   env.NAMESPACE = openshift.project()
   env.SKOPEO_IMAGE = openshift.selector( 'is/jenkins-slave-image-mgmt' ).object().status.dockerImageRepository
-  env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-?pipeline-?/, '').replaceAll(/-?${env.NAMESPACE}-?/, '')
+  env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-?pipeline-?/, '').replaceAll(/-?${env.NAMESPACE}-?/, '').replaceAll("/",'')
   echo "Starting Pipeline for ${APP_NAME}..."
   def projectBase = "${env.NAMESPACE}".replaceAll(/-dev/, '')
   env.STAGE1 = "${projectBase}-dev"
@@ -19,7 +19,7 @@ pipeline {
     stage('Code Build') {
       steps {
         git url: "${SOURCE_CODE_URL}"
-        sh "mvn -B clean install -q"
+        sh "mvn -B clean package -q"
       }
     }
 
@@ -35,7 +35,10 @@ pipeline {
         """
         script {
           openshift.withCluster() {
-            openshift.startBuild("${APP_NAME}", "--from-dir=oc-build", "--wait", "--follow")
+            openshift.withProject("${STAGE1}") {
+              echo "Now using project ${STAGE1} and Application - ${APP_NAME}"
+              openshift.startBuild("${APP_NAME}", "--from-dir=oc-build/deployments", "--wait=true", "--follow")
+            }
           }
         }
       }
@@ -113,7 +116,7 @@ pipeline {
 
             def localToken = readFile('/var/run/secrets/kubernetes.io/serviceaccount/token').trim()
 
-            def secretData = openshift.selector('secret/prod-credentials').object().data
+            def secretData = openshift.selector('secret/prod-cluster-credentials').object().data
             def encodedRegistry = secretData.registry
             def encodedToken = secretData.token
             def registry = sh(script:"set +x; echo ${encodedRegistry} | base64 --decode", returnStdout: true)
