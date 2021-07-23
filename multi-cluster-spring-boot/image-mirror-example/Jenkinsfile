@@ -35,7 +35,7 @@ pipeline {
           openshift.withCluster() {
             openshift.withProject("${devProject}") {
               echo 'Now using project env.STAGE1'          
-              openshift.selector("bc", "tasks").startBuild("--from-dir=oc-build", "--wait=true")
+              openshift.selector("bc", "${APP_NAME}").startBuild("--from-dir=oc-build/deployments", "--wait=true")
               // openshift.startBuild("${APP_NAME}", "--from-dir=oc-build", "--wait", "--follow")
             }
           }
