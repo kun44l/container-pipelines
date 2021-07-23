@@ -42,6 +42,7 @@ This quickstart can be deployed quickly using Ansible. Here are the steps.
 6. Expose the PROD Image Registry so that it can be accessed from the DEV cluster's Jenkins
     ````
     $ oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+    $ oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'
     ````
 7. We need to create the the *prod-api-credentials* param file so our pipeline will be able to verify a successful deployment to production.
     ```
@@ -213,9 +214,9 @@ A _build template_ is provided at `applier/templates/build.yml` that defines all
 
 Edit the build parameters to supply the required parameters for the builds.
 ````
-APPLICATION_NAME=spring-rest
-NAMESPACE=multicluster-spring-boot-dev
-PIPELINE_REPOSITORY_URL=https://github.com/kun44l/container-pipelines.git
+APPLICATION_NAME=<Name of the application>
+NAMESPACE=<Dev Project in the Dev Cluster>
+PIPELINE_REPOSITORY_URL=<Root URL of this Github Repo> e.g. https://github.com/redhat-cop/container-pipelines.git
 PIPELINE_REPOSITORY_REF=master
 PIPELINE_REPOSITORY_CONTEXT_DIR=multi-cluster-spring-boot/image-mirror-example OR multi-cluster-spring-boot/skopeo-example
 SRC_API_URL=<DEV_CLUSTER_API>
