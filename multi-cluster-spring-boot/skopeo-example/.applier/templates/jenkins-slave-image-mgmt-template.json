@@ -34,7 +34,7 @@
         {
             "description": "Path within Git project to build; empty for root project directory.",
             "name": "CONTEXT_DIR",
-            "value": "jenkins-slaves/jenkins-slave-image-mgmt",
+            "value": "jenkins-agents/jenkins-agent-image-mgmt",
             "required": false
         }
     ],
