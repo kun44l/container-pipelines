@@ -93,6 +93,7 @@ This quickstart can be deployed quickly using Ansible. Here are the steps.
     $ echo "TOKEN=${TOKEN}
     API_URL=https://master.example.com
     REGISTRY_URL=docker-registry-default.apps.example.com
+    INTERNAL_REGISTRY_URL=image-registry.openshift-image-registry.svc:5000
     " > skopeo-example/.applier/params/prod-credentials
     ```
 6. Now, Log into your _Dev_ cluster, and instantiate the pipeline.
