@@ -24,7 +24,7 @@ openshift_cluster_content:
   content:
   - name: Apply Image Build"
     namespace: "multicluster-spring-boot-dev"
-    template: "https://raw.githubusercontent.com/redhat-cop/containers-quickstarts/master/jenkins-slaves/templates/jenkins-slave-image-mgmt-template.json"
+    template: "{{ inventory_dir }}/../templates/jenkins-slave-image-mgmt-template.json"
     params: "{{ inventory_dir }}/../params/build-slave-dev"
   - name: "deploy build pipeline to dev"
     template: "{{ inventory_dir }}/../templates/build.yml"
