@@ -102,7 +102,7 @@ pipeline {
           serviceAccount 'jenkins'
           containerTemplate {
             name 'jnlp'
-            image "docker-registry.default.svc:5000/${NAMESPACE}/jenkins-slave-image-mgmt"
+            image "image-registry.openshift-image-registry.svc:5000/${NAMESPACE}/jenkins-slave-image-mgmt"
             alwaysPullImage true
             workingDir '/tmp'
             args '${computer.jnlpmac} ${computer.name}'
@@ -113,12 +113,16 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-
+            
+            echo "Reading Secret Data ..."
             def localToken = readFile('/var/run/secrets/kubernetes.io/serviceaccount/token').trim()
-
+            
             def secretData = openshift.selector('secret/prod-credentials').object().data
             def encodedRegistry = secretData.registry
+            def internalRegistry = secretData.internal-registry
             def encodedToken = secretData.token
+            echo "Internal Registry = ${internalRegistry}"
+            
             def registry = sh(script:"set +x; echo ${encodedRegistry} | base64 --decode", returnStdout: true)
             def token = sh(script:"set +x; echo ${encodedToken} | base64 --decode", returnStdout: true)
 
@@ -126,14 +130,13 @@ pipeline {
               def imageRegistry = openshift.selector( 'is', "${APP_NAME}").object().status.dockerImageRepository
               echo "Promoting ${imageRegistry} -> ${registry}/${STAGE3}/${APP_NAME}"
               sh """
-              set +x
-              skopeo copy --remove-signatures \
-                --src-creds openshift:${localToken} --src-cert-dir=/run/secrets/kubernetes.io/serviceaccount/ \
-                --dest-creds openshift:${token}  --dest-tls-verify=false \
-                docker://${imageRegistry} docker://${registry}/${STAGE3}/${APP_NAME}
+                set +x
+                skopeo copy --remove-signatures \
+                  --src-creds openshift:${localToken} --src-cert-dir=/run/secrets/kubernetes.io/serviceaccount/ \
+                  --dest-creds openshift:${token}  --dest-tls-verify=false \
+                  docker://${imageRegistry} docker://${registry}/${STAGE3}/${APP_NAME}
               """
             }
-
           }
         }
       }
