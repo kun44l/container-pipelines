@@ -116,7 +116,7 @@ pipeline {
 
             def localToken = readFile('/var/run/secrets/kubernetes.io/serviceaccount/token').trim()
 
-            def secretData = openshift.selector('secret/prod-cluster-credentials').object().data
+            def secretData = openshift.selector('secret/prod-credentials').object().data
             def encodedRegistry = secretData.registry
             def encodedToken = secretData.token
             def registry = sh(script:"set +x; echo ${encodedRegistry} | base64 --decode", returnStdout: true)
