@@ -12,11 +12,11 @@ openshift.withCluster() {
 
 pipeline {
 
-  agent { label 'maven' }
+  // agent { label 'maven' }
 
   stages {
 
-    stage('Code Build') {
+    /*stage('Code Build') {
       steps {
         git url: "${SOURCE_CODE_URL}"
         sh "mvn -B clean install -q"
@@ -39,8 +39,22 @@ pipeline {
           }
         }
       }
+    } */
+    
+    stage ('Tag DEV docker image') {
+      steps {
+        script {
+          openshift.withCluster() {
+            openshift.withProject("${STAGE1}") {
+              sh """
+                oc import-image ${APP_NAME} --from=quay.io/rhn_gps_kjambhor/libertydemo:latest --confirm=true 
+              """  
+            }
+          }
+        }
+      }
     }
-
+    
     stage ('Verify Deployment to Dev') {
       steps {
         script {
