@@ -1,6 +1,6 @@
 openshift.withCluster() {
   env.NAMESPACE = openshift.project()
-  env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-?pipeline-?/, '').replaceAll(/-?${env.NAMESPACE}-?/, '')
+  env.APP_NAME = "${env.JOB_NAME}".replaceAll(/-?pipeline-?/, '').replaceAll(/-?${env.NAMESPACE}-?/, '').replaceAll("/",'')
   echo "Starting Pipeline for ${APP_NAME}..."
   def projectBase = "${env.NAMESPACE}".replaceAll(/-dev/, '')
   env.STAGE1 = "${projectBase}-dev"
@@ -18,7 +18,7 @@ pipeline {
     stage('Code Build') {
       steps {
         git url: "${SOURCE_CODE_URL}"
-        sh "mvn -B clean install -q"
+        sh "mvn -B clean package -q"
       }
     }
 
@@ -33,7 +33,10 @@ pipeline {
         """
         script {
           openshift.withCluster() {
-            openshift.startBuild("${APP_NAME}", "--from-dir=oc-build", "--wait", "--follow")
+            openshift.withProject("${STAGE1}") {
+              echo "Now using project ${STAGE1} and Application - ${APP_NAME}"
+              openshift.startBuild("${APP_NAME}", "--from-dir=oc-build/deployments", "--wait=true", "--follow")
+            }
           }
         }
       }
@@ -83,18 +86,19 @@ pipeline {
 
     stage('Promote to Prod') {
       steps {
-        withDockerRegistry([credentialsId: "${STAGE1}-nonprod-credentials", url: "${SRC_API_URL}"]) {
-
-          withDockerRegistry([credentialsId: "${STAGE1}-prod-credentials", url: "${DEST_API_URL}"]) {
-
-            sh """
-                oc image mirror --insecure=true ${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest ${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest 
-              """
-
+        withDockerRegistry([credentialsId: "${STAGE1}-nonprod-credentials", url: "${SRC_REGISTRY}"]) {
+          withDockerRegistry([credentialsId: "${STAGE1}-prod-credentials", url: "${DEST_REGISTRY}"]) {
+            script {
+              OUT = sh(returnStdout: true, script: 'oc image mirror --insecure=true ${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest ${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest')
             }
+            echo "Result = ${OUT}"
+            //sh """
+            //    oc image mirror --insecure=true docker://${SRC_REGISTRY}/${STAGE2}/${APP_NAME}:latest docker://${DEST_REGISTRY}/${STAGE3}/${APP_NAME}:latest 
+            //  """
           }
         }
       }
+    }
 
     stage ('Verify Deployment to Prod') {
       steps {

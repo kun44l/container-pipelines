@@ -34,31 +34,37 @@ This quickstart can be deployed quickly using Ansible. Here are the steps.
     ```
     $ TOKEN=$(oc serviceaccounts get-token docker-registry-prod -n multicluster-spring-boot-prod)
     ```
-    The Ansible automation for your _Dev_ cluster will expect a parameters file to be created at `./applier/params/prod-credentials`. It should look something like this:
+   The Ansible automation for your _Dev_ cluster will expect a parameters file to be created at `./applier/params/prod-credentials`. It should look something like this:
     ```
     $ echo "TOKEN=${TOKEN}
     SECRET_NAME=prod-credentials" > image-mirror-example/.applier/params/prod-credentials
     ```
-6. We need to create the the *prod-api-credentials* param file so our pipeline will be able to verify a successful deployment to production.
+6. Expose the PROD Image Registry so that it can be accessed from the DEV cluster's Jenkins
+    ````
+    $ oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+    $ oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}'
+    ````
+7. We need to create the the *prod-api-credentials* param file so our pipeline will be able to verify a successful deployment to production.
     ```
     $ echo "TOKEN=${TOKEN}
-    API_URL=<API_URL>
-    REGISTRY_URL=<REGISTRY URL>
+    API_URL=<API_URL> //output of $ oc whoami --show-server on PROD cluster
+    REGISTRY_URL=<REGISTRY URL> //from Step 6
     SECRET_NAME=prod-cluster-credentials" > image-mirror-example/.applier/params/prod-cluster-credentials
     ```
-6. Now, Log into your _Dev_ cluster, and instantiate the pre-pipeline configuration.
+
+8. Now, Log into your _Dev_ cluster, and instantiate the pre-pipeline configuration.
     ```
     $ oc login <dev cluster>
     ...
     $ ansible-playbook -i image-mirror-example/.applier/inventory-pre-dev/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml
     ```
-7. Now the service account for the dev cluster docker registry has been created. We'll need to extract it's credentials so that our pipeline can authenticate to the dev cluster docker registry.
+9. Now the service account for the dev cluster docker registry has been created. We'll need to extract it's credentials so that our pipeline can authenticate to the dev cluster docker registry.
     ```
     $ TOKEN=$(oc serviceaccounts get-token docker-registry-dev -n multicluster-spring-boot-stage)
     $ echo "TOKEN=${TOKEN}
       SECRET_NAME=nonprod-credentials" > image-mirror-example/.applier/params/nonprod-credentials
     ```
-8. Now, we will instantiate the pipeline and all configuration in the non-production cluster.
+10. Now, we will instantiate the pipeline and all configuration in the non-production cluster.
    ```
    $ ansible-playbook -i image-mirror-example/.applier/inventory-dev/ galaxy/openshift-applier/playbooks/openshift-cluster-seed.yml
    ```
@@ -87,6 +93,7 @@ This quickstart can be deployed quickly using Ansible. Here are the steps.
     $ echo "TOKEN=${TOKEN}
     API_URL=https://master.example.com
     REGISTRY_URL=docker-registry-default.apps.example.com
+    INTERNAL_REGISTRY_URL=image-registry.openshift-image-registry.svc:5000
     " > skopeo-example/.applier/params/prod-credentials
     ```
 6. Now, Log into your _Dev_ cluster, and instantiate the pipeline.
@@ -179,21 +186,21 @@ A _deploy template_ is provided at `applier/templates/deployment.yml` that defin
 
 This template should be instantiated once in each of the namespaces that our app will be deployed to. For this purpose, we have created a param file to be fed to `oc process` to customize the template for each environment.
 
-Deploy the deployment template to all three projects.
+Deploy the deployment template to all three projects. Run the commands from the root directory "image-mirror-example" or "skopeo-example" whichever method you have started with.
 ```
-$ oc process -f applier/templates/deployment.yml --param-file=applier/params/deployment-dev | oc apply -f-
+$ oc process -f /.applier/templates/deployment.yml --param-file=/.applier/params/deployment-dev | oc apply -f -
 service "spring-rest" created
 route "spring-rest" created
 imagestream "spring-rest" created
 deploymentconfig "spring-rest" created
 rolebinding "jenkins_edit" configured
-$ oc process -f applier/templates/deployment.yml --param-file=applier/params/deployments-stage | oc apply -f-
+$ oc process -f /.applier/templates/deployment.yml --param-file=/.applier/params/deployments-stage | oc apply -f -
 service "spring-rest" created
 route "spring-rest" created
 imagestream "spring-rest" created
 deploymentconfig "spring-rest" created
 rolebinding "jenkins_edit" created
-$ oc process -f applier/templates/deployment.yml --param-file=applier/params/deployment-prod | oc apply -f-
+$ oc process -f /.applier/templates/deployment.yml --param-file=/.applier/params/deployment-prod | oc apply -f -
 service "spring-rest" created
 route "spring-rest" created
 imagestream "spring-rest" created
@@ -205,6 +212,19 @@ A _build template_ is provided at `applier/templates/build.yml` that defines all
 
 * A `BuildConfig` that defines a `JenkinsPipelineStrategy` build, which will be used to define out pipeline.
 * A `BuildConfig` that defines a `Source` build with `Binary` input. This will build our image.
+
+Edit the build parameters to supply the required parameters for the builds.
+````
+APPLICATION_NAME=<Name of the application>
+NAMESPACE=<Dev Project in the Dev Cluster>
+PIPELINE_REPOSITORY_URL=<Root URL of this Github Repo> e.g. https://github.com/redhat-cop/container-pipelines.git
+PIPELINE_REPOSITORY_REF=master
+PIPELINE_REPOSITORY_CONTEXT_DIR=multi-cluster-spring-boot/image-mirror-example OR multi-cluster-spring-boot/skopeo-example
+SRC_API_URL=<DEV_CLUSTER_API>
+DEST_API_URL=<PROD_CLUSTER_API>
+SRC_REGISTRY=<DEV_IMAGE_REGISTRY_URL>
+DEST_REGISTRY=<PROD_IMAGE_REGISTRY_URL>
+````
 
 Deploy the pipeline template in dev only.
 ```
