@@ -113,7 +113,7 @@ pipeline {
           serviceAccount 'jenkins'
           containerTemplate {
             name 'jnlp'
-            image "docker-registry.default.svc:5000/${NAMESPACE}/jenkins-slave-image-mgmt"
+            image "image-registry.openshift-image-registry.svc:5000/${NAMESPACE}/jenkins-slave-image-mgmt"
             alwaysPullImage true
             workingDir '/tmp'
             args '${computer.jnlpmac} ${computer.name}'
