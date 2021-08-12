@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: project.openshift.io/v1
+  kind: ProjectRequest
+  metadata:
+    name: liberty-dev
+    creationTimestam: null
+  displayName: MultiCluster Docker Project - Dev
+- apiVersion: project.openshift.io/v1
+  kind: ProjectRequest
+  metadata:
+      name: liberty-stage
+    creationTimestam: null
+  displayName: MultiCluster Docker Project - Stage

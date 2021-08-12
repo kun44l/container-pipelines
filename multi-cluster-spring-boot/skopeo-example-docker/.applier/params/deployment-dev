@@ -1,0 +1,5 @@
+APPLICATION_NAME=liberty-demo
+NAMESPACE=liberty-dev
+SA_NAMESPACE=liberty-dev
+READINESS_RESPONSE=status.:.UP
+READINESS_PATH=/SleepyBatchletSample-1.0/joboperator?action=getJobNames

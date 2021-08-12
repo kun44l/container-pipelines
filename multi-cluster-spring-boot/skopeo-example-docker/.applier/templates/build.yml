@@ -15,33 +15,6 @@ objects:
   metadata:
     labels:
       application: ${APPLICATION_NAME}
-      app: ${APPLICATION_NAME}
-      build: ${APPLICATION_NAME}
-    name: "${APPLICATION_NAME}"
-    namespace: "${NAMESPACE}"
-  spec:
-    output:
-      to:
-        kind: ImageStreamTag
-        name: "${APPLICATION_NAME}:latest"
-    postCommit: {}
-    resources: {}
-    runPolicy: Serial
-    source:
-      binary: {}
-      type: Binary
-    strategy:
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: ${IMAGE_STREAM_TAG_NAME}
-          namespace: ${IMAGE_STREAM_NAMESPACE}
-      type: Source
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    labels:
-      application: ${APPLICATION_NAME}
     name: "${APPLICATION_NAME}-pipeline"
     namespace: "${NAMESPACE}"
   spec:
@@ -61,35 +34,49 @@ objects:
       jenkinsPipelineStrategy:
         jenkinsfilePath: ${PIPELINE_SCRIPT}
         env:
-        - name: SOURCE_CODE_URL
-          value: ${SOURCE_CODE_URL}
-        - name: SOURCE_CODE_BRANCH
-          value: ${SOURCE_CODE_BRANCH}
+            #- name: SOURCE_CODE_URL
+            #value: ${SOURCE_CODE_URL}
+            #- name: SOURCE_CODE_BRANCH
+            #value: ${SOURCE_CODE_BRANCH}
         - name: SKIP_TLS
           value: "true"
-        - name: SRC_REGISTRY
-          value: ${SRC_REGISTRY}
-        - name: DEST_REGISTRY
-          value: ${DEST_REGISTRY}
-        - name: SRC_API_URL
-          value: ${SRC_API_URL}
-        - name: DEST_API_URL
-          value: ${DEST_API_URL}
+#- apiVersion: build.openshift.io/v1
+#  kind: BuildConfig
+#  metadata:
+#    labels:
+#      application: ${APPLICATION_NAME}
+#    name: ${APPLICATION_NAME}
+#    namespace: "${NAMESPACE}"
+#  spec:
+#    output:
+#      to:
+#        kind: ImageStreamTag
+#        name: ${APPLICATION_NAME}:latest
+#    source:
+#      binary: {}
+#      type: Binary
+#    strategy:
+#      sourceStrategy:
+#        from:
+#          kind: ImageStreamTag
+#          name: ${IMAGE_STREAM_TAG_NAME}
+#          namespace: ${IMAGE_STREAM_NAMESPACE}
+#      type: Source
 parameters:
 - description: The name for the application.
   name: APPLICATION_NAME
   required: true
-  value: basic-spring
+#  value: basic-spring
 - description: The namespace to deploy into
   name: NAMESPACE
   required: true
 - description: Git source URI for application
   name: PIPELINE_REPOSITORY_URL
   required: true
-  value: https://github.com/kun44l/container-pipelines.git
+#  value: https://github.com/redhat-cop/container-pipelines.git
 - description: Git branch/tag reference
   name: PIPELINE_REPOSITORY_REF
-  value: "master"
+  value:
 - description: Path within Git project to build; empty for root project directory.
   name: PIPELINE_REPOSITORY_CONTEXT_DIR
   value:
@@ -124,19 +111,3 @@ parameters:
   name: IMAGE_STREAM_TAG_NAME
   required: true
   value: redhat-openjdk18-openshift:1.1
-- description: The source docker registry used for image mirror
-  name: SRC_REGISTRY
-  required: true
-- description: The destination docker registry used for image mirror
-  name: DEST_REGISTRY
-  required: true
-- description: Set source code branch
-  name: SOURCE_CODE_BRANCH
-  required: true
-  value: master
-- description: The source docker registry used for the docker registry url
-  name: SRC_API_URL
-  required: true
-- description: The destination docker registry used for the docker registry url
-  name: DEST_API_URL
-  required: true

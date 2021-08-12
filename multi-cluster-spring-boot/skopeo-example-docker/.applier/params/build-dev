@@ -1,0 +1,6 @@
+APPLICATION_NAME=liberty-demo
+NAMESPACE=liberty-dev
+PIPELINE_REPOSITORY_URL=https://github.com/kun44l/container-pipelines.git
+PIPELINE_REPOSITORY_REF=master
+PIPELINE_REPOSITORY_CONTEXT_DIR=multi-cluster-spring-boot/skopeo-example-docker
+SOURCE_CODE_REF=master

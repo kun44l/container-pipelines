@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: promoter
+    namespace: liberty-prod
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: null
+    name: edit
+    namespace: liberty-prod
+  groupNames: null
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: promoter
+    namespace: liberty-prod
+  userNames:
+  - system:serviceaccount:liberty-prod:promoter

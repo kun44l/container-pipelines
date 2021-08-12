@@ -1,0 +1,6 @@
+APPLICATION_NAME=liberty-docker-demo
+NAMESPACE=liberty-prod
+SA_NAME=jenkins
+SA_NAMESPACE=liberty-dev
+READINESS_RESPONSE=status.:.UP
+READINESS_PATH=/SleepyBatchletSample-1.0/joboperator?action=getJobNames

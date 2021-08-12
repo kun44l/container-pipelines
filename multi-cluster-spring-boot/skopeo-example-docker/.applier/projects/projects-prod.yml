@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: project.openshift.io/v1
+  kind: ProjectRequest
+  metadata:
+    name: liberty-prod
+    creationTimestam: null
+  displayName: MultiCluster Docker Project - Prod

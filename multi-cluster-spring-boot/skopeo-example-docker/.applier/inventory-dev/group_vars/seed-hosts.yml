@@ -1,31 +1,31 @@
 openshift_cluster_content:
 - object: projects
   content:
-  - name: "create environments"
+  - name: "Create the DEV and Stage Environments"
     file: "{{ inventory_dir }}/../projects/projects.yml"
     action: create
 - object: deployments
   content:
-  - name: "deploy jenkins"
+  - name: "Deploy Jenkins"
     template: "openshift//jenkins-ephemeral"
     params: "{{ inventory_dir }}/../params/jenkins"
-    namespace: multicluster-spring-boot-dev
-  - name: "create prod cluster credential"
+    namespace: liberty-dev
+  - name: "Create PROD Cluster Credentials"
     template: "{{ inventory_dir }}/../templates/cluster-secret.yml"
     params: "{{ inventory_dir }}/../params/prod-credentials"
-    namespace: multicluster-spring-boot-dev
-  - name: "deploy dev environment"
+    namespace: liberty-dev
+  - name: "Deploy Dev environment"
     template: "{{ inventory_dir }}/../templates/deployment.yml"
     params: "{{ inventory_dir }}/../params/deployment-dev"
-  - name: "deply stage environment"
+  - name: "Deploy Stage environment"
     template: "{{ inventory_dir }}/../templates/deployment.yml"
     params: "{{ inventory_dir }}/../params/deployment-stage"
 - object: builds
   content:
   - name: Apply Image Build"
-    namespace: "multicluster-spring-boot-dev"
+    namespace: "liberty-dev"
     template: "{{ inventory_dir }}/../templates/jenkins-slave-image-mgmt-template.json"
     params: "{{ inventory_dir }}/../params/build-slave-dev"
-  - name: "deploy build pipeline to dev"
+  - name: "Deploy docker pipeline to Dev"
     template: "{{ inventory_dir }}/../templates/build.yml"
     params: "{{ inventory_dir }}/../params/build-dev"
