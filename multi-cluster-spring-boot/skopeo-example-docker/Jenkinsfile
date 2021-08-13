@@ -124,16 +124,19 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-
+            echo "Currently in project -- ${openshift.project()}"
+            
             def localToken = readFile('/var/run/secrets/kubernetes.io/serviceaccount/token').trim()
-
-            def secretData = openshift.selector('secret/prod-credentials').object().data
+            def secretData = openshift.selector('secret/prod-cluster-credentials').object().data
+            
             def encodedRegistry = secretData.registry
             def encodedToken = secretData.token
+            
             def registry = sh(script:"set +x; echo ${encodedRegistry} | base64 --decode", returnStdout: true)
             def token = sh(script:"set +x; echo ${encodedToken} | base64 --decode", returnStdout: true)
 
             openshift.withProject("${STAGE2}") {
+              echo "Changing to project -- ${openshift.project()}"
               def imageRegistry = openshift.selector( 'is', "${APP_NAME}").object().status.dockerImageRepository
               echo "Promoting ${imageRegistry} -> ${registry}/${STAGE3}/${APP_NAME}"
               sh """
@@ -144,7 +147,6 @@ pipeline {
                 docker://${imageRegistry} docker://${registry}/${STAGE3}/${APP_NAME}
               """
             }
-
           }
         }
       }
@@ -173,6 +175,5 @@ pipeline {
         }
       }
     }
-
   }
 }
