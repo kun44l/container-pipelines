@@ -156,7 +156,7 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
-            def secretData = openshift.selector('secret/prod-credentials').object().data
+            def secretData = openshift.selector('secret/prod-cluster-credentials').object().data
             def encodedAPI = secretData.api
             def encodedToken = secretData.token
             env.API = sh(script:"set +x; echo ${encodedAPI} | base64 --decode", returnStdout: true).replaceAll(/https?/, 'insecure')
