@@ -156,6 +156,8 @@ pipeline {
       steps {
         script {
           openshift.withCluster() {
+            echo "Currently in project -- ${openshift.project()}"
+            echo "Reading credentials ..."
             def secretData = openshift.selector('secret/prod-cluster-credentials').object().data
             def encodedAPI = secretData.api
             def encodedToken = secretData.token
@@ -164,6 +166,8 @@ pipeline {
           }
           openshift.withCluster( env.API, env.TOKEN ) {
             openshift.withProject("${STAGE3}") {
+              echo "Currently in project -- ${openshift.project()}"
+              echo "Deploying Pods ..."
               def dcObj = openshift.selector('dc', env.APP_NAME).object()
               def podSelector = openshift.selector('pod', [deployment: "${APP_NAME}-${dcObj.status.latestVersion}"])
               podSelector.untilEach {
